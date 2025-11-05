@@ -5,6 +5,7 @@ import { obtenerPokemon } from '../services/pokemonService';
 import SearchBar from '../components/SearchBar';
 import PokemonCard from '../components/PokemonCard';
 import NavigationButtons from '../components/NavigationButtons';
+import NotFound from '../components/NotFound';
 import "@/global.css"
 
 export default function Pokedex() {
@@ -12,6 +13,8 @@ export default function Pokedex() {
   const [loading, setLoading] = useState<boolean>(false);
   const [searchId, setSearchId] = useState<number | string>(25);
   const [inputValue, setInputValue] = useState<string>('25');
+  const [notFound, setNotFound] = useState<boolean>(false);
+  const [lastSearch, setLastSearch] = useState<string>('');
 
   useEffect(() => {
     cargarPokemon();
@@ -19,8 +22,18 @@ export default function Pokedex() {
 
   const cargarPokemon = async () => {
     setLoading(true);
+    setNotFound(false);
     const data = await obtenerPokemon(searchId);
-    setPokemon(data);
+    
+    if (data === null) {
+      setNotFound(true);
+      setPokemon(null);
+      setLastSearch(searchId.toString());
+    } else {
+      setPokemon(data);
+      setNotFound(false);
+    }
+    
     setLoading(false);
   };
 
@@ -61,6 +74,8 @@ export default function Pokedex() {
             <ActivityIndicator size="large" color="#ffffff" />
             <Text className="text-white mt-4">Cargando...</Text>
           </View>
+        ) : notFound ? (
+          <NotFound searchTerm={lastSearch} />
         ) : (
           <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
             <PokemonCard pokemon={pokemon} />
