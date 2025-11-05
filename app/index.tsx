@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, ScrollView, ActivityIndicator, Text } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
 import { PokemonType } from '../types/pokemon';
 import { obtenerPokemon } from '../services/pokemonService';
 import SearchBar from '../components/SearchBar';
@@ -9,12 +10,22 @@ import NotFound from '../components/NotFound';
 import "@/global.css"
 
 export default function Pokedex() {
+  const params = useLocalSearchParams();
   const [pokemon, setPokemon] = useState<PokemonType | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [searchId, setSearchId] = useState<number | string>(25);
   const [inputValue, setInputValue] = useState<string>('25');
   const [notFound, setNotFound] = useState<boolean>(false);
   const [lastSearch, setLastSearch] = useState<string>('');
+
+  // Cargar Pokémon cuando viene desde favoritos
+  useEffect(() => {
+    if (params.pokemonId) {
+      const id = Number(params.pokemonId);
+      setSearchId(id);
+      setInputValue(id.toString());
+    }
+  }, [params.pokemonId]);
 
   useEffect(() => {
     cargarPokemon();
