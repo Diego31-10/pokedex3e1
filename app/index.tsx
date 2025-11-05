@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { View, ScrollView, ActivityIndicator, Text } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
-import { PokemonType } from '../types/pokemon';
-import { obtenerPokemon } from '../services/pokemonService';
+import { PokemonType, Evolution } from '../types/pokemon';
+import { obtenerPokemon, obtenerEvoluciones } from '../services/pokemonService';
 import SearchBar from '../components/SearchBar';
 import PokemonCard from '../components/PokemonCard';
 import NavigationButtons from '../components/NavigationButtons';
 import NotFound from '../components/NotFound';
+import EvolutionChain from '../components/Evolution';
 import "@/global.css"
 
 export default function Pokedex() {
@@ -17,8 +18,9 @@ export default function Pokedex() {
   const [inputValue, setInputValue] = useState<string>('25');
   const [notFound, setNotFound] = useState<boolean>(false);
   const [lastSearch, setLastSearch] = useState<string>('');
+  const [evolutions, setEvolutions] = useState<Evolution[]>([]);
+  const [loadingEvolutions, setLoadingEvolutions] = useState<boolean>(false);
 
-  // Cargar Pokémon cuando viene desde favoritos
   useEffect(() => {
     if (params.pokemonId) {
       const id = Number(params.pokemonId);
@@ -34,18 +36,31 @@ export default function Pokedex() {
   const cargarPokemon = async () => {
     setLoading(true);
     setNotFound(false);
+    setEvolutions([]);
+    setLoadingEvolutions(true);
+    
     const data = await obtenerPokemon(searchId);
     
     if (data === null) {
       setNotFound(true);
       setPokemon(null);
       setLastSearch(searchId.toString());
+      setEvolutions([]);
+      setLoadingEvolutions(false);
     } else {
       setPokemon(data);
       setNotFound(false);
+      await cargarEvoluciones(data.id);
     }
     
     setLoading(false);
+  };
+
+  const cargarEvoluciones = async (pokemonId: number) => {
+    setLoadingEvolutions(true);
+    const evolutionsData = await obtenerEvoluciones(pokemonId);
+    setEvolutions(evolutionsData);
+    setLoadingEvolutions(false);
   };
 
   const handleSearch = () => {
@@ -71,6 +86,11 @@ export default function Pokedex() {
     }
   };
 
+  const handleSelectEvolution = (evolutionId: number) => {
+    setSearchId(evolutionId);
+    setInputValue(evolutionId.toString());
+  };
+
   return (
     <View className="flex-1 bg-red-500">
       <View className="flex-1 pt-12 px-4">
@@ -88,16 +108,35 @@ export default function Pokedex() {
         ) : notFound ? (
           <NotFound searchTerm={lastSearch} />
         ) : (
-          <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-            <PokemonCard pokemon={pokemon} />
+          <>
+            <ScrollView 
+              className="flex-1" 
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingBottom: 90 }}
+            >
+              <PokemonCard pokemon={pokemon} />
+              
+              {pokemon && (
+                <EvolutionChain
+                  evolutions={evolutions}
+                  currentPokemonId={pokemon.id}
+                  onSelectEvolution={handleSelectEvolution}
+                  loading={loadingEvolutions}
+                />
+              )}
+            </ScrollView>
+
+            {/* Botones fijos en la parte inferior */}
             {pokemon && (
-              <NavigationButtons
-                onPrevious={handlePrevious}
-                onNext={handleNext}
-                disablePrevious={pokemon.id === 1}
-              />
+              <View className="absolute bottom-0 left-0 right-0 px-4  pt-3 bg-red-500 ">
+                <NavigationButtons
+                  onPrevious={handlePrevious}
+                  onNext={handleNext}
+                  disablePrevious={pokemon.id === 1}
+                />
+              </View>
             )}
-          </ScrollView>
+          </>
         )}
       </View>
     </View>

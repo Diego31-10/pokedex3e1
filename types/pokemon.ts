@@ -19,12 +19,31 @@ export interface PokemonType {
       name: string;
     };
   }[];
+  species?: {
+    url: string;
+  };
 }
 
-// Tipo para favoritos simplificado
 export interface FavoritePokemon {
   id: number;
   name: string;
   image: string;
   types: string[];
+}
+
+// Nuevos tipos para evoluciones
+export interface Evolution {
+  id: number;
+  name: string;
+  image: string;
+}
+
+export interface EvolutionChainResponse {
+  chain: {
+    species: {
+      name: string;
+      url: string;
+    };
+    evolves_to: any[];
+  };
 }
