@@ -8,6 +8,7 @@ import PokemonCard from '../components/PokemonCard';
 import NavigationButtons from '../components/NavigationButtons';
 import NotFound from '../components/NotFound';
 import EvolutionChain from '../components/Evolution';
+import PokemonChat from '../components/PokemonChat';
 import "@/global.css"
 
 export default function Pokedex() {
@@ -117,18 +118,21 @@ export default function Pokedex() {
               <PokemonCard pokemon={pokemon} />
               
               {pokemon && (
-                <EvolutionChain
-                  evolutions={evolutions}
-                  currentPokemonId={pokemon.id}
-                  onSelectEvolution={handleSelectEvolution}
-                  loading={loadingEvolutions}
-                />
+                <>
+                  <PokemonChat pokemonName={pokemon.name} />
+                  
+                  <EvolutionChain
+                    evolutions={evolutions}
+                    currentPokemonId={pokemon.id}
+                    onSelectEvolution={handleSelectEvolution}
+                    loading={loadingEvolutions}
+                  />
+                </>
               )}
             </ScrollView>
 
-            {/* Botones fijos en la parte inferior */}
             {pokemon && (
-              <View className="absolute bottom-0 left-0 right-0 px-4  pt-3 bg-red-500 ">
+              <View className="absolute bottom-0 left-0 right-0 px-4 pb-2 pt-4 bg-red-500">
                 <NavigationButtons
                   onPrevious={handlePrevious}
                   onNext={handleNext}
